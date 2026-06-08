@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureVPN Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #0a1520;
+    --bg3: #0f1e2e;
+    --accent: #00e5ff;
+    --accent2: #00ff88;
+    --accent3: #ff3366;
+    --glow: rgba(0,229,255,0.15);
+    --text: #c8e6f0;
+    --dim: #4a7a8a;
+    --border: rgba(0,229,255,0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Share Tech Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .header { text-align: center; padding: 24px 0 8px; }
+  .logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(0,229,255,0.6);
+    letter-spacing: 4px;
+  }
+  .logo span { color: var(--accent2); }
+  .tagline { font-size: 11px; color: var(--dim); letter-spacing: 3px; margin-top: 4px; text-transform: uppercase; }
+  .power-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .power-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid;
+    transition: all 0.5s ease;
+  }
+  .status-badge.disconnected { color: var(--accent3); border-color: rgba(255,51,102,0.4); background: rgba(255,51,102,0.08); }
+  .status-badge.connected { color: var(--accent2); border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.08); }
+  .status-badge.connecting { color: var(--accent); border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.08); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .dot.pulse { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+  .power-btn {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.4s ease;
+    outline: none;
+  }
+  .power-btn::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+  }
+  .power-btn::after {
+    content: '';
+    position: absolute;
+    inset: -18px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+  }
+  .power-btn:hover { transform: scale(1.05); }
+  .power-btn.disconnected { border-color: rgba(255,51,102,0.4); box-shadow: 0 0 30px rgba(255,51,102,0.15), inset 0 0 20px rgba(255,51,102,0.05); }
+  .power-btn.disconnected::before { border-color: rgba(255,51,102,0.2); animation: rotate 8s linear infinite; }
+  .power-btn.connected { border-color: rgba(0,255,136,0.6); box-shadow: 0 0 40px rgba(0,255,136,0.2), inset 0 0 20px rgba(0,255,136,0.05); animation: connectedPulse 3s ease-in-out infinite; }
+  .power-btn.connected::before { border-color: rgba(0,255,136,0.3); animation: rotate 4s linear infinite; }
+  .power-btn.connected::after { border-color: rgba(0,255,136,0.1); animation: rotate 8s linear infinite reverse; }
+  .power-btn.connecting { border-color: rgba(0,229,255,0.4); box-shadow: 0 0 30px rgba(0,229,255,0.2); }
+  .power-btn.connecting::before { border-color: rgba(0,229,255,0.4); animation: rotate 1s linear infinite; }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes connectedPulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(0,255,136,0.2), inset 0 0 20px rgba(0,255,136,0.05); }
+    50% { box-shadow: 0 0 60px rgba(0,255,136,0.35), inset 0 0 30px rgba(0,255,136,0.1); }
+  }
+  .power-icon { width: 52px; height: 52px; transition: all 0.4s ease; }
+  .power-icon path, .power-icon circle { transition: stroke 0.4s ease; }
+  .power-btn.disconnected .power-icon path, .power-btn.disconnected .power-icon circle { stroke: rgba(255,51,102,0.8); }
+  .power-btn.connected .power-icon path, .power-btn.connected .power-icon circle { stroke: var(--accent2); filter: drop-shadow(0 0 8px rgba(0,255,136,0.8)); }
+  .power-btn.connecting .power-icon path, .power-btn.connecting .power-icon circle { stroke: var(--accent); }
+  .connect-label { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .stat-card.active::before { opacity: 1; }
+  .stat-label { font-size: 10px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
+  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); transition: color 0.5s; }
+  .stat-value.green { color: var(--accent2); }
+  .stat-sub { font-size: 10px; color: var(--dim); }
+  .server-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .section-title { font-size: 10px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
+  .server-list { display: flex; flex-direction: column; gap: 8px; }
+  .server-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--bg3);
+  }
+  .server-item:hover { border-color: rgba(0,229,255,0.3); background: rgba(0,229,255,0.04); }
+  .server-item.selected { border-color: rgba(0,229,255,0.5); background: rgba(0,229,255,0.08); }
+  .flag { width: 28px; height: 20px; border-radius: 3px; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .server-info { flex: 1; }
+  .server-name { font-size: 13px; color: var(--text); }
+  .server-ping { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .signal-bars { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .bar { width: 4px; background: var(--dim); border-radius: 1px; }
+  .bar.active { background: var(--accent2); }
+  .bar:nth-child(1) { height: 4px; }
+  .bar:nth-child(2) { height: 8px; }
+  .bar:nth-child(3) { height: 12px; }
+  .bar:nth-child(4) { height: 16px; }
+  .check-icon { width: 18px; height: 18px; border-radius: 50%; background: rgba(0,255,136,0.15); border: 1px solid rgba(0,255,136,0.5); display: none; align-items: center; justify-content: center; flex-shrink: 0; }
+  .server-item.selected .check-icon { display: flex; }
+  .features-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .feature-item { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; background: var(--bg3); border: 1px solid transparent; cursor: pointer; transition: all 0.3s; }
+  .feature-item:hover { border-color: var(--border); }
+  .feature-item.on { border-color: rgba(0,255,136,0.25); background: rgba(0,255,136,0.04); }
+  .feature-item.off { opacity: 0.5; }
+  .feat-icon { font-size: 16px; }
+  .feat-name { font-size: 11px; color: var(--text); }
+  .feat-state { font-size: 10px; letter-spacing: 1px; color: var(--dim); }
+  .feature-item.on .feat-state { color: var(--accent2); }
+  .ip-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .ip-label { font-size: 10px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; }
+  .ip-value { font-family: 'Orbitron', sans-serif; font-size: 14px; color: var(--accent); }
+  .ip-value.masked { color: var(--accent2); letter-spacing: 2px; }
+  .arrow { color: var(--dim); font-size: 18px; }
+  .speed-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .speed-bars { display: flex; align-items: flex-end; gap: 4px; height: 50px; margin-top: 12px; }
+  .speed-bar { flex: 1; background: linear-gradient(to top, rgba(0,229,255,0.6), rgba(0,255,136,0.3)); border-radius: 2px 2px 0 0; min-height: 4px; transition: height 0.5s ease; }
+  .speed-labels { display: flex; justify-content: space-between; margin-top: 8px; }
+  .speed-num { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; }
+  .speed-num.down { color: var(--accent); }
+  .speed-num.up { color: var(--accent2); }
+  .speed-unit { font-size: 10px; color: var(--dim); margin-left: 2px; }
+  .log-card { background: #030810; border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 11px; line-height: 1.8; max-height: 120px; overflow-y: auto; }
+  .log-card::-webkit-scrollbar { width: 3px; }
+  .log-card::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+  .log-line { color: var(--dim); }
+  .log-line .time { color: rgba(0,229,255,0.4); margin-right: 8px; }
+  .log-line .ok { color: var(--accent2); }
+  .log-line .err { color: var(--accent3); }
+  .log-line .info { color: var(--accent); }
+  .cursor { display: inline-block; width: 7px; height: 12px; background: var(--accent); animation: blink 1s step-end infinite; vertical-align: middle; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  .footer { text-align: center; padding: 8px; font-size: 10px; color: var(--dim); letter-spacing: 1px; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dim); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">SECURE<span>VPN</span></div>
+    <div class="tagline">Military Grade Encryption</div>
+  </div>
+
+  <div class="power-card">
+    <div class="status-badge disconnected" id="statusBadge">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">DISCONNECTED</span>
+    </div>
+    <button class="power-btn disconnected" id="powerBtn" onclick="toggleVPN()">
+      <svg class="power-icon" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="18" stroke-width="2.5" stroke-dasharray="60 20" stroke-linecap="round"/>
+        <path d="M26 8 L26 26" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="connect-label" id="connectLabel">TAP TO CONNECT</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card" id="timeCard">
+      <div class="stat-label">Session Time</div>
+      <div class="stat-value" id="sessionTime">00:00:00</div>
+      <div class="stat-sub">Duration</div>
+    </div>
+    <div class="stat-card" id="dataCard">
+      <div class="stat-label">Data Used</div>
+      <div class="stat-value green" id="dataUsed">0.00</div>
+      <div class="stat-sub">MB transferred</div>
+    </div>
+  </div>
+
+  <div class="ip-card">
+    <div>
+      <div class="ip-label">Your IP</div>
+      <div class="ip-value" id="realIP">203.128.12.55</div>
+    </div>
+    <div class="arrow">→</div>
+    <div>
+      <div class="ip-label">VPN IP</div>
+      <div class="ip-value masked" id="vpnIP">● ● ● ● ● ●</div>
+    </div>
+  </div>
+
+  <div class="server-card">
+    <div class="section-title">▸ Select Server</div>
+    <div class="server-list" id="serverList">
+      <div class="server-item selected" onclick="selectServer(this,'Netherlands','12ms')" data-country="Netherlands">
+        <div class="flag">🇳🇱</div>
+        <div class="server-info"><div class="server-name">Netherlands</div><div class="server-ping">Ping: 12ms · Amsterdam</div></div>
+        <div class="signal-bars"><div class="bar active"></div><div class="bar active"></div><div class="bar active"></div><div class="bar active"></div></div>
+        <div class="check-icon"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="server-item" onclick="selectServer(this,'Germany','18ms')" data-country="Germany">
+        <div class="flag">🇩🇪</div>
+        <div class="server-info"><div class="server-name">Germany</div><div class="server-ping">Ping: 18ms · Frankfurt</div></div>
+        <div class="signal-bars"><div class="bar active"></div><div class="bar active"></div><div class="bar active"></div><div class="bar"></div></div>
+        <div class="check-icon"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="server-item" onclick="selectServer(this,'USA','85ms')" data-country="USA">
+        <div class="flag">🇺🇸</div>
+        <div class="server-info"><div class="server-name">United States</div><div class="server-ping">Ping: 85ms · New York</div></div>
+        <div class="signal-bars"><div class="bar active"></div><div class="bar active"></div><div class="bar"></div><div class="bar"></div></div>
+        <div class="check-icon"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="server-item" onclick="selectServer(this,'Japan','140ms')" data-country="Japan">
+        <div class="flag">🇯🇵</div>
+        <div class="server-info"><div class="server-name">Japan</div><div class="server-ping">Ping: 140ms · Tokyo</div></div>
+        <div class="signal-bars"><div class="bar active"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        <div class="check-icon"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="server-item" onclick="selectServer(this,'Singapore','62ms')" data-country="Singapore">
+        <div class="flag">🇸🇬</div>
+        <div class="server-info"><div class="server-name">Singapore</div><div class="server-ping">Ping: 62ms · Singapore</div></div>
+        <div class="signal-bars"><div class="bar active"></div><div class="bar active"></div><div class="bar active"></div><div class="bar"></div></div>
+        <div class="check-icon"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L4 7L9 1" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="speed-card">
+    <div class="section-title">▸ Network Speed</div>
+    <div class="speed-bars" id="speedBars">
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+      <div class="speed-bar" style="height:5%"></div><div class="speed-bar" style="height:5%"></div>
+    </div>
+    <div class="speed-labels">
+      <div><span class="speed-num down" id="downSpeed">0.0</span><span class="speed-unit">↓ Mbps</span></div>
+      <div><span class="speed-num up" id="upSpeed">0.0</span><span class="speed-unit">↑ Mbps</span></div>
+    </div>
+  </div>
+
+  <div class="features-card">
+    <div class="section-title">▸ Protection Features</div>
+    <div class="feature-list">
+      <div class="feature-item on" onclick="toggleFeature(this)">
+        <div class="feat-icon">🔒</div>
+        <div><div class="feat-name">Kill Switch</div><div class="feat-state">ON</div></div>
+      </div>
+      <div class="feature-item on" onclick="toggleFeature(this)">
+        <div class="feat-icon">🛡️</div>
+        <div><div class="feat-name">DNS Leak</div><div class="feat-state">ON</div></div>
+      </div>
+      <div class="feature-item off" onclick="toggleFeature(this)">
+        <div class="feat-icon">🚫</div>
+        <div><div class="feat-name">Ad Block</div><div class="feat-state">OFF</div></div>
+      </div>
+      <div class="feature-item off" onclick="toggleFeature(this)">
+        <div class="feat-icon">🔐</div>
+        <div><div class="feat-name">Split Tunnel</div><div class="feat-state">OFF</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-card" id="logOutput">
+    <div class="log-line"><span class="time">00:00:00</span>System initialized. Ready.</div>
+    <div class="log-line"><span class="time">00:00:01</span><span class="info">AES-256 encryption loaded</span></div>
+    <div class="log-line"><span class="time">00:00:01</span>Waiting for connection... <span class="cursor"></span></div>
+  </div>
+
+  <div class="footer">SecureVPN Pro v2.4.1 · AES-256-GCM · OpenVPN</div>
+</div>
+
+<script>
+  const vpnIPs = {
+    'Netherlands': '185.220.101.45',
+    'Germany': '91.108.4.130',
+    'USA': '104.28.210.91',
+    'Japan': '103.86.96.100',
+    'Singapore': '199.87.154.200'
+  };
+
+  let isConnected = false, isConnecting = false;
+  let sessionStart = null;
+  let timerInterval = null, speedInterval = null, dataInterval = null;
+  let totalData = 0;
+  let selectedServer = { country: 'Netherlands', ip: '185.220.101.45' };
+
+  function log(msg, type) {
+    const logDiv = document.getElementById('logOutput');
+    const now = new Date();
+    const time = now.toTimeString().slice(0,8);
+    logDiv.querySelectorAll('.cursor').forEach(c => c.remove());
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="time">${time}</span><span class="${type||''}">${msg}</span> <span class="cursor"></span>`;
+    logDiv.appendChild(line);
+    logDiv.scrollTop = logDiv.scrollHeight;
+  }
+
+  function selectServer(el, country, ping) {
+    document.querySelectorAll('.server-item').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedServer = { country, ip: vpnIPs[country] };
+    if (!isConnected) log(`Server: ${country} [${ping}]`, 'info');
+  }
+
+  function toggleFeature(el) {
+    const stateEl = el.querySelector('.feat-state');
+    const on = el.classList.toggle('on');
+    el.classList.toggle('off', !on);
+    stateEl.textContent = on ? 'ON' : 'OFF';
+    log(`${el.querySelector('.feat-name').textContent}: ${stateEl.textContent}`, on ? 'ok' : '');
+  }
+
+  function setUI(state) {
+    const btn = document.getElementById('powerBtn');
+    const badge = document.getElementById('statusBadge');
+    const dot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const label = document.getElementById('connectLabel');
+    btn.className = `power-btn ${state}`;
+    badge.className = `status-badge ${state}`;
+    dot.className = state === 'disconnected' ? 'dot' : 'dot pulse';
+    const labels = { disconnected: ['DISCONNECTED','TAP TO CONNECT'], connected: ['CONNECTED','TAP TO DISCONNECT'], connecting: ['CONNECTING...','PLEASE WAIT'] };
+    statusText.textContent = labels[state][0];
+    label.textContent = labels[state][1];
+  }
+
+  function toggleVPN() {
+    if (isConnecting) return;
+    if (isConnected) {
+      isConnected = false;
+      clearInterval(timerInterval); clearInterval(speedInterval); clearInterval(dataInterval);
+      totalData = 0;
+      document.getElementById('dataUsed').textContent = '0.00';
+      document.getElementById('sessionTime').textContent = '00:00:00';
+      setUI('disconnected');
+      document.getElementById('vpnIP').textContent = '● ● ● ● ● ●';
+      document.getElementById('vpnIP').className = 'ip-value masked';
+      document.getElementById('timeCard').classList.remove('active');
+      document.getElementById('dataCard').classList.remove('active');
+      document.getElementById('downSpeed').textContent = '0.0';
+      document.getElementById('upSpeed').textContent = '0.0';
+      document.querySelectorAll('.speed-bar').forEach(b => b.style.height = '5%');
+      log('Disconnecting...', '');
+      setTimeout(() => log('Tunnel closed.', 'err'), 400);
+      setTimeout(() => log('VPN disconnected.', ''), 800);
+    } else {
+      isConnecting = true;
+      setUI('connecting');
+      log(`Connecting to ${selectedServer.country}...`, 'info');
+      setTimeout(() => log('Initiating handshake...', ''), 300);
+      setTimeout(() => log('Authenticating...', 'info'), 700);
+      setTimeout(() => log('Establishing tunnel...', ''), 1200);
+      setTimeout(() => log('AES-256 keys exchanged.', 'ok'), 1700);
+      setTimeout(() => {
+        isConnecting = false; isConnected = true;
+        setUI('connected');
+        document.getElementById('vpnIP').textContent = selectedServer.ip;
+        document.getElementById('vpnIP').className = 'ip-value';
+        document.getElementById('timeCard').classList.add('active');
+        document.getElementById('dataCard').classList.add('active');
+        sessionStart = Date.now();
+        timerInterval = setInterval(() => {
+          const e = Date.now() - sessionStart;
+          const h = String(Math.floor(e/3600000)).padStart(2,'0');
+          const m = String(Math.floor((e%3600000)/60000)).padStart(2,'0');
+          const s = String(Math.floor((e%60000)/1000)).padStart(2,'0');
+          document.getElementById('sessionTime').textContent = `${h}:${m}:${s}`;
+        }, 1000);
+        speedInterval = setInterval(() => {
+          document.getElementById('downSpeed').textContent = (Math.random()*40+20).toFixed(1);
+          document.getElementById('upSpeed').textContent = (Math.random()*10+3).toFixed(1);
+          document.querySelectorAll('.speed-bar').forEach(b => b.style.height = Math.floor(Math.random()*85+10)+'%');
+        }, 800);
+        dataInterval = setInterval(() => {
+          totalData += Math.random()*0.5+0.1;
+          document.getElementById('dataUsed').textContent = totalData.toFixed(2);
+        }, 500);
+        log(`Connected! → ${selectedServer.ip}`, 'ok');
+        setTimeout(() => log('All traffic encrypted.', 'ok'), 300);
+      }, 2200);
+    }
+  }
+</script>
+</body>
+</html>
